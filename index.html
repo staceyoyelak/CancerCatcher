@@ -17,6 +17,7 @@
       --blue: #2563eb;
       --amber: #b45309;
       --red: #b91c1c;
+      --rose: #fff1f2;
       --shadow: 0 18px 50px rgba(23, 32, 31, 0.1);
     }
 
@@ -152,6 +153,38 @@
       border-radius: 8px;
       padding: 14px 16px;
       line-height: 1.45;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .step {
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 12px;
+      display: grid;
+      align-content: start;
+      gap: 4px;
+    }
+
+    .step strong {
+      font-size: 0.93rem;
+    }
+
+    .step span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .step.active {
+      border-color: rgba(15, 118, 110, 0.5);
+      background: var(--mint);
     }
 
     .grid {
@@ -294,6 +327,24 @@
       pointer-events: none;
     }
 
+    .camera-tip {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(12, 21, 20, 0.72);
+      color: #f2fffb;
+      font-weight: 700;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
     .upload {
       position: relative;
       overflow: hidden;
@@ -340,6 +391,19 @@
       display: grid;
       gap: 8px;
       margin-top: 4px;
+    }
+
+    .urgent-box {
+      border: 1px solid #fecdd3;
+      background: var(--rose);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .urgent-box label {
+      font-size: 0.9rem;
     }
 
     .result {
@@ -390,6 +454,47 @@
       background: #fbfefd;
     }
 
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfefd;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .metric strong {
+      font-size: 1.08rem;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .report-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfefd;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .report-box pre {
+      margin: 0;
+      white-space: pre-wrap;
+      color: var(--muted);
+      font-family: inherit;
+      line-height: 1.45;
+    }
+
     .small {
       color: var(--muted);
       font-size: 0.9rem;
@@ -416,6 +521,10 @@
       .grid {
         grid-template-columns: 1fr;
       }
+
+      .steps, .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @media (max-width: 640px) {
@@ -434,6 +543,10 @@
 
       .camera-stage, video, canvas, .preview {
         min-height: 330px;
+      }
+
+      .steps, .metrics {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -462,6 +575,13 @@
         CancerCatcher is an early-warning support tool, not a medical diagnosis. Any new, changing, bleeding, painful, or worrying lesion should be checked by a qualified clinician.
       </div>
 
+      <section class="steps" aria-label="Screening steps">
+        <div class="step active" id="stepConsent"><strong>1. Consent</strong><span>Camera and photo use are opt-in.</span></div>
+        <div class="step" id="stepPhoto"><strong>2. Photo</strong><span>Capture a close, sharp image.</span></div>
+        <div class="step" id="stepContext"><strong>3. Context</strong><span>Add changes and symptoms.</span></div>
+        <div class="step" id="stepReport"><strong>4. Report</strong><span>Review what to do next.</span></div>
+      </section>
+
       <section class="grid">
         <div class="panel">
           <div class="panel-head">
@@ -477,6 +597,7 @@
             <img id="preview" class="preview hidden" alt="Captured skin area preview" />
             <canvas id="canvas"></canvas>
             <div class="target hidden" id="target"></div>
+            <div class="camera-tip hidden" id="cameraTip">Use bright light, hold steady, and fill the circle with the mole or patch.</div>
           </div>
           <div class="panel-body">
             <div class="consent">
@@ -530,11 +651,26 @@
                   <option value="22">Bleeding, crusting, or painful</option>
                 </select>
               </div>
+              <div class="field">
+                <label for="location">Body area</label>
+                <select id="location">
+                  <option value="Not specified">Not specified</option>
+                  <option value="Face or scalp">Face or scalp</option>
+                  <option value="Arm or hand">Arm or hand</option>
+                  <option value="Chest, back, or stomach">Chest, back, or stomach</option>
+                  <option value="Leg or foot">Leg or foot</option>
+                  <option value="Genital or hidden area">Genital or hidden area</option>
+                </select>
+              </div>
               <div class="toggles">
                 <label class="checkline"><input type="checkbox" class="riskFlag" value="10" /> <span>Irregular or blurred border</span></label>
                 <label class="checkline"><input type="checkbox" class="riskFlag" value="10" /> <span>Multiple colors or very dark area</span></label>
                 <label class="checkline"><input type="checkbox" class="riskFlag" value="8" /> <span>Larger than a pencil eraser</span></label>
                 <label class="checkline"><input type="checkbox" class="riskFlag" value="12" /> <span>Looks different from other moles</span></label>
+              </div>
+              <div class="urgent-box">
+                <label class="checkline"><input type="checkbox" id="urgentFlag" value="35" /> <span>It is bleeding without injury, not healing, or changing quickly</span></label>
+                <span class="small">If this is checked, the app will recommend prompt medical review regardless of the photo score.</span>
               </div>
               <div class="field">
                 <label for="notes">Notes for your appointment</label>
@@ -559,6 +695,26 @@
           <ul class="findings" id="findings">
             <li>Photo tips: use bright natural light, clean the lens, avoid shadows, and include a ruler or coin for scale when possible.</li>
           </ul>
+          <div class="metrics" id="metrics">
+            <div class="metric"><strong id="qualityMetric">--</strong><span>Photo quality</span></div>
+            <div class="metric"><strong id="darkMetric">--</strong><span>Dark areas</span></div>
+            <div class="metric"><strong id="colorMetric">--</strong><span>Color variation</span></div>
+            <div class="metric"><strong id="contextMetric">--</strong><span>Context score</span></div>
+          </div>
+          <div class="report-box">
+            <strong>Appointment summary</strong>
+            <pre id="reportText">Run a screening to generate a concise summary you can bring to a clinician.</pre>
+            <div class="actions">
+              <button class="btn secondary" id="copyReportBtn" type="button" disabled>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy report
+              </button>
+              <button class="btn secondary" id="printBtn" type="button" disabled>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                Print
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -576,6 +732,7 @@
     const preview = document.getElementById("preview");
     const emptyState = document.getElementById("emptyState");
     const target = document.getElementById("target");
+    const cameraTip = document.getElementById("cameraTip");
     const cameraStatus = document.getElementById("cameraStatus");
     const riskLabel = document.getElementById("riskLabel");
     const riskSummary = document.getElementById("riskSummary");
@@ -584,9 +741,26 @@
     const analysisTime = document.getElementById("analysisTime");
     const changeSpeed = document.getElementById("changeSpeed");
     const symptoms = document.getElementById("symptoms");
+    const locationField = document.getElementById("location");
+    const urgentFlag = document.getElementById("urgentFlag");
+    const notes = document.getElementById("notes");
+    const qualityMetric = document.getElementById("qualityMetric");
+    const darkMetric = document.getElementById("darkMetric");
+    const colorMetric = document.getElementById("colorMetric");
+    const contextMetric = document.getElementById("contextMetric");
+    const reportText = document.getElementById("reportText");
+    const copyReportBtn = document.getElementById("copyReportBtn");
+    const printBtn = document.getElementById("printBtn");
+    const steps = {
+      consent: document.getElementById("stepConsent"),
+      photo: document.getElementById("stepPhoto"),
+      context: document.getElementById("stepContext"),
+      report: document.getElementById("stepReport")
+    };
 
     let stream = null;
     let imageReady = false;
+    let latestReport = "";
 
     const icons = {
       ok: "Low urgency indicators",
@@ -598,6 +772,12 @@
       cameraStatus.textContent = text;
     }
 
+    function setStep(activeStep) {
+      Object.entries(steps).forEach(([key, element]) => {
+        element.classList.toggle("active", key === activeStep);
+      });
+    }
+
     function updateConsentState() {
       const allowed = consent.checked;
       startBtn.disabled = !allowed;
@@ -606,10 +786,12 @@
         captureBtn.disabled = true;
         analyzeBtn.disabled = true;
         setStatus("Consent needed");
+        setStep("consent");
         stopCamera();
       } else {
         setStatus("Ready");
         analyzeBtn.disabled = !imageReady;
+        setStep(imageReady ? "context" : "photo");
       }
     }
 
@@ -630,8 +812,10 @@
         preview.classList.add("hidden");
         emptyState.classList.add("hidden");
         target.classList.remove("hidden");
+        cameraTip.classList.remove("hidden");
         captureBtn.disabled = false;
         setStatus("Camera on");
+        setStep("photo");
       } catch (error) {
         setStatus("Camera blocked");
         showFinding(["Camera permission was denied or unavailable. You can still upload a photo from your phone camera."]);
@@ -646,6 +830,7 @@
       video.srcObject = null;
       video.classList.add("hidden");
       target.classList.add("hidden");
+      cameraTip.classList.add("hidden");
       captureBtn.disabled = true;
     }
 
@@ -663,6 +848,7 @@
       analyzeBtn.disabled = false;
       clearBtn.disabled = false;
       setStatus("Image ready");
+      setStep("context");
     }
 
     function loadUpload(file) {
@@ -677,6 +863,7 @@
         analyzeBtn.disabled = false;
         clearBtn.disabled = false;
         setStatus("Image ready");
+        setStep("context");
       };
       reader.readAsDataURL(file);
     }
@@ -694,6 +881,15 @@
       riskSummary.textContent = "Take or upload a photo, add risk context, then run the screening.";
       meterFill.style.width = "0%";
       analysisTime.textContent = "No image analyzed yet";
+      latestReport = "";
+      copyReportBtn.disabled = true;
+      printBtn.disabled = true;
+      qualityMetric.textContent = "--";
+      darkMetric.textContent = "--";
+      colorMetric.textContent = "--";
+      contextMetric.textContent = "--";
+      reportText.textContent = "Run a screening to generate a concise summary you can bring to a clinician.";
+      setStep(consent.checked ? "photo" : "consent");
       showFinding(["Photo tips: use bright natural light, clean the lens, avoid shadows, and include a ruler or coin for scale when possible."]);
     }
 
@@ -722,6 +918,7 @@
         let dark = 0;
         let redDominant = 0;
         let colorSpread = 0;
+        let lowContrast = 0;
 
         for (let i = 0; i < data.length; i += 16) {
           const r = data[i];
@@ -734,18 +931,22 @@
           if (brightness < 72) dark++;
           if (r > g * 1.25 && r > b * 1.25) redDominant++;
           if (spread > 56) colorSpread++;
+          if (spread < 18 && brightness > 95 && brightness < 205) lowContrast++;
         }
 
+        const blurRisk = lowContrast / total;
         const imageScore =
           Math.min(18, (dark / total) * 80) +
           Math.min(14, (redDominant / total) * 58) +
-          Math.min(16, (colorSpread / total) * 42);
+          Math.min(16, (colorSpread / total) * 42) +
+          Math.min(8, blurRisk * 16);
 
         finishAnalysis(Math.round(imageScore), {
           brightRatio: bright / total,
           darkRatio: dark / total,
           redRatio: redDominant / total,
-          colorRatio: colorSpread / total
+          colorRatio: colorSpread / total,
+          blurRisk
         });
       };
       img.src = preview.src;
@@ -753,12 +954,19 @@
 
     function finishAnalysis(imageScore, imageStats) {
       const contextScore = Number(changeSpeed.value) + Number(symptoms.value) +
+        Number(urgentFlag.checked ? urgentFlag.value : 0) +
         Array.from(document.querySelectorAll(".riskFlag:checked")).reduce((sum, item) => sum + Number(item.value), 0);
       const score = Math.max(4, Math.min(100, imageScore + contextScore));
       const items = [];
+      const checkedFlags = Array.from(document.querySelectorAll(".riskFlag:checked"))
+        .map((item) => item.nextElementSibling.textContent.trim());
+      const qualityScore = Math.max(0, Math.round(100 - (imageStats.brightRatio * 75) - (imageStats.blurRisk * 45)));
 
       if (imageStats.brightRatio > 0.42) {
         items.push("The photo may be overexposed. Retake in softer light if details are washed out.");
+      }
+      if (imageStats.blurRisk > 0.42) {
+        items.push("The photo may not show enough detail. Retake closer, hold steady, and tap the mole or patch to focus.");
       }
       if (imageStats.darkRatio > 0.08) {
         items.push("The image contains very dark areas. Dark or uneven pigmentation can be worth clinician review, especially if new or changing.");
@@ -772,8 +980,11 @@
       if (Number(symptoms.value) >= 22) {
         items.push("Bleeding, crusting, or pain should be assessed promptly by a healthcare professional.");
       }
+      if (urgentFlag.checked) {
+        items.push("You marked a red-flag change. Arrange prompt medical review even if the image looks unclear.");
+      }
 
-      if (score >= 68) {
+      if (score >= 68 || urgentFlag.checked) {
         riskLabel.textContent = icons.urgent;
         riskSummary.textContent = "This screen found enough warning indicators that you should arrange a prompt clinical skin check.";
         meterFill.style.background = "var(--red)";
@@ -795,6 +1006,40 @@
       showFinding(items);
       meterFill.style.width = `${score}%`;
       analysisTime.textContent = `Analyzed ${new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`;
+      qualityMetric.textContent = `${qualityScore}/100`;
+      darkMetric.textContent = `${Math.round(imageStats.darkRatio * 100)}%`;
+      colorMetric.textContent = `${Math.round(imageStats.colorRatio * 100)}%`;
+      contextMetric.textContent = `${contextScore}/100`;
+      latestReport = [
+        "CancerCatcher appointment summary",
+        `Date: ${new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`,
+        `Body area: ${locationField.value}`,
+        `Screening result: ${riskLabel.textContent}`,
+        `Photo quality: ${qualityScore}/100`,
+        `Reported change: ${changeSpeed.options[changeSpeed.selectedIndex].text}`,
+        `Symptoms: ${symptoms.options[symptoms.selectedIndex].text}`,
+        `ABCDE concerns: ${checkedFlags.length ? checkedFlags.join(", ") : "None selected"}`,
+        `Red flag: ${urgentFlag.checked ? "Yes" : "No"}`,
+        `Notes: ${notes.value.trim() || "None"}`,
+        "Reminder: this is not a diagnosis. Please use clinical judgment and seek professional care for worrying, changing, painful, bleeding, or non-healing lesions."
+      ].join("\n");
+      reportText.textContent = latestReport;
+      copyReportBtn.disabled = false;
+      printBtn.disabled = false;
+      setStep("report");
+    }
+
+    async function copyReport() {
+      if (!latestReport) return;
+      try {
+        await navigator.clipboard.writeText(latestReport);
+        copyReportBtn.textContent = "Copied";
+        setTimeout(() => {
+          copyReportBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy report';
+        }, 1200);
+      } catch (error) {
+        reportText.textContent = `${latestReport}\n\nCopy failed in this browser. Select this text manually if needed.`;
+      }
     }
 
     consent.addEventListener("change", updateConsentState);
@@ -803,6 +1048,8 @@
     clearBtn.addEventListener("click", clearImage);
     analyzeBtn.addEventListener("click", analyzePixels);
     uploadInput.addEventListener("change", (event) => loadUpload(event.target.files[0]));
+    copyReportBtn.addEventListener("click", copyReport);
+    printBtn.addEventListener("click", () => window.print());
 
     updateConsentState();
   </script>
